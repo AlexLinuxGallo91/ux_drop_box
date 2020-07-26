@@ -24,11 +24,9 @@ class ConfiguracionWebDriver:
                                                       )
             webdriver_phantomjs.set_window_size(1120, 550)
         except FileNotFoundError as e:
-            pass
-            #('Sucedio un error al intentar configurar el webdriver: {}'.format(e))
+            ('Sucedio un error al intentar configurar el webdriver: {}'.format(e))
         except Exception as e:
-            pass
-            #print('Sucedio una excepcion al intentar configurar el webdriver {}'.format(e))
+            print('Sucedio una excepcion al intentar configurar el webdriver {}'.format(e))
 
         return webdriver_phantomjs
 
@@ -67,11 +65,11 @@ class ConfiguracionWebDriver:
                                                   log_path=config_constantes.DEV_NULL
                                                   )
         except FileNotFoundError as e:
-            pass
-            #print('Sucedio un error al intentar configurar el webdriver: {}'.format(e))
+            print('Sucedio un error al intentar configurar el webdriver: {}'.format(e))
+            sys.exit()
         except Exception as e:
-            pass
-            #print('Sucedio una excepcion al intentar configurar el webdriver {}'.format(e))
+            print('Sucedio una excepcion al intentar configurar el webdriver {}'.format(e))
+            sys.exit()
 
         return webdriver_firefox
 
@@ -105,8 +103,10 @@ class ConfiguracionWebDriver:
                                                 )
         except FileNotFoundError as e:
             print('Sucedio un error al intentar configurar el webdriver: {}'.format(e))
+            sys.exit()
         except Exception as e:
             print('Sucedio una excepcion al intentar configurar el webdriver {}'.format(e))
+            sys.exit()
 
         return webdriver_chrome
 
