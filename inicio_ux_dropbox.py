@@ -30,7 +30,7 @@ def inicio_sesion_dropbox(webdriver_test_ux: WebDriver, json_eval, json_args, ur
             EC.element_to_be_clickable((By.XPATH, '//button[@class="auth-google button-primary"]')))
         btn_inicio_sesion.click()
 
-        if ValidacionesHtml.se_encuentran_mas_ventanas_en_sesion(webdriver_test_ux, 20):
+        if ValidacionesHtml.se_encuentran_mas_ventanas_en_sesion(webdriver_test_ux, 6):
             ventana_padre = webdriver_test_ux.window_handles[0]
             ventana_hija = webdriver_test_ux.window_handles[1]
 
@@ -44,8 +44,8 @@ def inicio_sesion_dropbox(webdriver_test_ux: WebDriver, json_eval, json_args, ur
             EC.element_to_be_clickable((By.ID, 'identifierNext')))
         btn_next_gmail_sec_email.click()
 
-        input_pass_gmail = WebDriverWait(webdriver_test_ux, 6).until(
-            EC.element_to_be_clickable((By.NAME, 'password')))
+        input_pass_gmail = WebDriverWait(webdriver_test_ux, 60).until(
+            EC.presence_of_element_located((By.NAME, 'password')))
         input_pass_gmail.send_keys(json_args['password'])
 
         btn_next_gmail_sec_password = WebDriverWait(webdriver_test_ux, 6).until(
@@ -54,7 +54,7 @@ def inicio_sesion_dropbox(webdriver_test_ux: WebDriver, json_eval, json_args, ur
 
         webdriver_test_ux.switch_to.window(ventana_padre)
 
-        WebDriverWait(webdriver_test_ux, 6).until(EC.element_to_be_clickable((By.CLASS_NAME, 'maestro-nav__contents')))
+        WebDriverWait(webdriver_test_ux, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'maestro-nav__contents')))
 
         json_eval["steps"][0]["output"][0]["status"] = jsonConst.SUCCESS
         json_eval["steps"][0]["status"] = jsonConst.SUCCESS
