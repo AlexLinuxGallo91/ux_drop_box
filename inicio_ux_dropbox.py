@@ -37,20 +37,36 @@ def inicio_sesion_dropbox(webdriver_test_ux: WebDriver, json_eval, json_args, ur
             webdriver_test_ux.switch_to.window(ventana_hija)
 
         input_correo_gmail = WebDriverWait(webdriver_test_ux, 6).until(
-            EC.element_to_be_clickable((By.ID, 'identifierId')))
+            EC.element_to_be_clickable((By.ID, 'Email')))
         input_correo_gmail.send_keys(json_args['user'])
 
         btn_next_gmail_sec_email = WebDriverWait(webdriver_test_ux, 6).until(
-            EC.element_to_be_clickable((By.ID, 'identifierNext')))
+            EC.element_to_be_clickable((By.ID, 'next')))
         btn_next_gmail_sec_email.click()
 
         input_pass_gmail = WebDriverWait(webdriver_test_ux, 60).until(
-            EC.presence_of_element_located((By.NAME, 'password')))
+            EC.presence_of_element_located((By.ID, 'password')))
         input_pass_gmail.send_keys(json_args['password'])
 
         btn_next_gmail_sec_password = WebDriverWait(webdriver_test_ux, 6).until(
-            EC.element_to_be_clickable((By.ID, 'passwordNext')))
+            EC.element_to_be_clickable((By.ID, 'submit')))
         btn_next_gmail_sec_password.click()
+
+        # input_correo_gmail = WebDriverWait(webdriver_test_ux, 6).until(
+        #     EC.element_to_be_clickable((By.ID, 'identifierId')))
+        # input_correo_gmail.send_keys(json_args['user'])
+        #
+        # btn_next_gmail_sec_email = WebDriverWait(webdriver_test_ux, 6).until(
+        #     EC.element_to_be_clickable((By.ID, 'identifierNext')))
+        # btn_next_gmail_sec_email.click()
+        #
+        # input_pass_gmail = WebDriverWait(webdriver_test_ux, 60).until(
+        #     EC.presence_of_element_located((By.NAME, 'password')))
+        # input_pass_gmail.send_keys(json_args['password'])
+        #
+        # btn_next_gmail_sec_password = WebDriverWait(webdriver_test_ux, 6).until(
+        #     EC.element_to_be_clickable((By.ID, 'passwordNext')))
+        # btn_next_gmail_sec_password.click()
 
         webdriver_test_ux.switch_to.window(ventana_padre)
 
@@ -93,7 +109,6 @@ def cargar_archivo_dropbox(webdriver_test_ux: WebDriver, json_eval, json_args, n
 
     try:
         ValidacionesHtml.verificar_remover_ventana_configuracion(webdriver_test_ux)
-
         ValidacionesHtml.verificar_archivo_ya_existente_en_portal(webdriver_test_ux, nombre_archivo_sin_ext)
 
         input_carga_de_archivo = WebDriverWait(webdriver_test_ux, 10).until(
@@ -400,20 +415,20 @@ def main():
 
     # se genera el json de evaluacion
     json_evaluacion_drop_box = GeneradorJsonBaseEvaluacion.generar_nuevo_template_json()
-
+    webdriver_ux_test.save_screenshot("./ingreso.png")
     json_evaluacion_drop_box = inicio_sesion_dropbox(webdriver_ux_test, json_evaluacion_drop_box, json_args,
                                                      url_login)
-
+    webdriver_ux_test.save_screenshot("./inicio_sesion.png")
     json_evaluacion_drop_box = cargar_archivo_dropbox(webdriver_ux_test, json_evaluacion_drop_box, json_args,
                                                       nombre_archivo_imagen_sin_ext, nombre_archivo_imagen_con_ext)
-
+    webdriver_ux_test.save_screenshot("./carga.png")
     json_evaluacion_drop_box = descargar_archivo_dropbox(webdriver_ux_test, json_evaluacion_drop_box, json_args)
-
+    webdriver_ux_test.save_screenshot("./descarga.png")
     json_evaluacion_drop_box = eliminar_archivo_dropbox(webdriver_ux_test, json_evaluacion_drop_box,
                                                         nombre_archivo_imagen_con_ext)
-
+    webdriver_ux_test.save_screenshot("./eliminacion.png")
     json_evaluacion_drop_box = cerrar_sesion_dropbox(webdriver_ux_test, json_evaluacion_drop_box)
-
+    webdriver_ux_test.save_screenshot("./cierre_sesion.png")
     tiempo_final_ejecucion_prueba = Temporizador.obtener_tiempo_timer() - tiempo_inicial_ejecucion_prueba
     fecha_prueba_final = Temporizador.obtener_fecha_tiempo_actual()
 
