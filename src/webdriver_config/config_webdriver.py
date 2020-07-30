@@ -87,6 +87,7 @@ class ConfiguracionWebDriver:
         opciones_chrome.add_argument("--headless")
         opciones_chrome.add_argument('--allow-running-insecure-content')
         opciones_chrome.add_argument("--enable-javascript")
+        opciones_chrome.add_argument('--disable-dev-shm-usage')
         opciones_chrome.add_argument('window-size=1920x1080')
         opciones_chrome.add_argument('--no-sandbox')
         opciones_chrome.add_experimental_option('excludeSwitches', ['enable-logging'])

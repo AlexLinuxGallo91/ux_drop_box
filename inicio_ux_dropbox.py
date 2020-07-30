@@ -13,6 +13,8 @@ from selenium.common.exceptions import ElementNotInteractableException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import ElementClickInterceptedException
+from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver.common.keys import Keys
 import src.validaciones_json.constantes_json as jsonConst
 import time
 import sys
@@ -127,10 +129,7 @@ def cargar_archivo_dropbox(webdriver_test_ux: WebDriver, json_eval, json_args, n
 
         btn_cargar.click()
 
-        link_archivo_cargado = WebDriverWait(webdriver_test_ux, 720).until(
-            EC.element_to_be_clickable((By.LINK_TEXT, '{}'.format(nombre_archivo_sin_ext))))
-
-        WebDriverWait(webdriver_test_ux, 10).until(EC.presence_of_element_located(
+        WebDriverWait(webdriver_test_ux, 720).until(EC.presence_of_element_located(
             (By.XPATH, '//p[@class="mc-snackbar-title"][text()="Se carg\u00F3 {}."]'.format(nombre_archivo_con_ext))))
 
         btn_cerrar_progreso_carga = WebDriverWait(webdriver_test_ux, 10).until(EC.presence_of_element_located(
@@ -138,7 +137,7 @@ def cargar_archivo_dropbox(webdriver_test_ux: WebDriver, json_eval, json_args, n
 
         btn_cerrar_progreso_carga.click()
 
-        link_archivo_cargado.click()
+        webdriver_test_ux.refresh()
 
         json_eval["steps"][1]["output"][0]["status"] = jsonConst.SUCCESS
         json_eval["steps"][1]["status"] = jsonConst.SUCCESS
@@ -174,25 +173,32 @@ def cargar_archivo_dropbox(webdriver_test_ux: WebDriver, json_eval, json_args, n
     return json_eval
 
 
-def descargar_archivo_dropbox(webdriver_test_ux: WebDriver, json_eval, json_args):
+def descargar_archivo_dropbox(webdriver_test_ux: WebDriver, json_eval, nombre_archivo_con_ext):
     tiempo_step_inicio = Temporizador.obtener_tiempo_timer()
     fecha_inicio = Temporizador.obtener_fecha_tiempo_actual()
 
     try:
+        ValidacionesHtml.verificar_remover_ventana_configuracion(webdriver_test_ux)
 
-        btn_mas = WebDriverWait(webdriver_test_ux, 20).until(
-            EC.element_to_be_clickable((By.CLASS_NAME, 'more-button')))
+        search_bar = WebDriverWait(webdriver_test_ux, 20).until(
+            EC.element_to_be_clickable((By.CLASS_NAME, 'search__input')))
 
-        btn_mas.click()
+        search_bar.send_keys(nombre_archivo_con_ext)
         time.sleep(1)
+        search_bar.send_keys(Keys.RETURN)
+
+        archivo_por_descargar = WebDriverWait(webdriver_test_ux, 20).until(
+            EC.element_to_be_clickable((By.XPATH, '//tr[@data-filename="{}"]'.format(nombre_archivo_con_ext))))
+
+        btn_mas_acciones = WebDriverWait(archivo_por_descargar, 20).until(
+            EC.element_to_be_clickable((By.CLASS_NAME, 'browse-overflow-menu')))
+
+        btn_mas_acciones.click()
 
         btn_descargar = WebDriverWait(webdriver_test_ux, 20).until(
-            EC.element_to_be_clickable((By.CLASS_NAME, 'more-button__download')))
+            EC.element_to_be_clickable((By.CLASS_NAME, 'action-download')))
 
         btn_descargar.click()
-        time.sleep(4)
-
-        webdriver_test_ux.get('https://www.dropbox.com/home')
 
         json_eval["steps"][2]["output"][0]["status"] = jsonConst.SUCCESS
         json_eval["steps"][2]["status"] = jsonConst.SUCCESS
@@ -218,6 +224,11 @@ def descargar_archivo_dropbox(webdriver_test_ux: WebDriver, json_eval, json_args
         json_eval["steps"][2]["status"] = jsonConst.FAILED
         json_eval["steps"][2]["output"][0][
             "output"] = 'fue imposible descargar el archivo dentro del portal Drop Box: {}'.format(e.msg)
+    except StaleElementReferenceException as e:
+        json_eval["steps"][2]["output"][0]["status"] = jsonConst.FAILED
+        json_eval["steps"][2]["status"] = jsonConst.FAILED
+        json_eval["steps"][2]["output"][0][
+            "output"] = 'fue imposible descargar el archivo dentro del portal Drop Box: {}'.format(e.msg)
 
     tiempo_step_final = Temporizador.obtener_tiempo_timer() - tiempo_step_inicio
     fecha_fin = Temporizador.obtener_fecha_tiempo_actual()
@@ -234,39 +245,27 @@ def eliminar_archivo_dropbox(webdriver_test_ux: WebDriver, json_eval, nombre_arc
 
     try:
 
-        archivo_por_eliminar = WebDriverWait(webdriver_test_ux, 12).until(
-            EC.element_to_be_clickable((By.XPATH,
-                                        '//tr[@data-filename="{}"]'.format(
-                                            nombre_archivo_con_ext))))
+        archivo_por_descargar = WebDriverWait(webdriver_test_ux, 20).until(
+            EC.element_to_be_clickable((By.XPATH, '//tr[@data-filename="{}"]'.format(nombre_archivo_con_ext))))
 
-        td_archivo_por_eliminar = archivo_por_eliminar.find_elements_by_tag_name('td')
-        td_archivo_por_eliminar = td_archivo_por_eliminar[0]
-        td_archivo_por_eliminar.click()
+        btn_mas_acciones = WebDriverWait(archivo_por_descargar, 20).until(
+            EC.element_to_be_clickable((By.CLASS_NAME, 'browse-overflow-menu')))
 
-        btn_more = WebDriverWait(webdriver_test_ux, 12).until(
-            EC.element_to_be_clickable((By.XPATH, '//span[@aria-label="Acciones"]')))
+        btn_mas_acciones.click()
 
-        btn_more.click()
-
-        btn_eliminar = WebDriverWait(webdriver_test_ux, 12).until(
-            EC.element_to_be_clickable(
-                (By.XPATH, '//span[@role="menuitem"][@class="action-delete mc-popover-content-item"]')))
+        btn_eliminar = WebDriverWait(webdriver_test_ux, 20).until(
+            EC.element_to_be_clickable((By.CLASS_NAME, 'action-delete')))
 
         btn_eliminar.click()
 
-        btn_eliminar_archivo_definitivo = WebDriverWait(webdriver_test_ux, 12).until(
+        btn_eliminar_modal = WebDriverWait(webdriver_test_ux, 20).until(
+            EC.element_to_be_clickable((By.XPATH, '//span[@class="mc-button-content"][text()="Eliminar"]')))
+
+        btn_eliminar_modal.click()
+
+        WebDriverWait(webdriver_test_ux, 30).until(
             EC.element_to_be_clickable(
-                (By.XPATH, '//span[@class="mc-button-content"][text()="Eliminar"]')))
-
-        btn_eliminar_archivo_definitivo.click()
-
-        WebDriverWait(webdriver_test_ux, 12).until(EC.element_to_be_clickable(
-            (By.XPATH, '//p[@class="mc-snackbar-title"][text()="Se elimin\u00F3 1 elemento."]')))
-
-        btn_cerrar_pop_up = WebDriverWait(webdriver_test_ux, 12).until(
-            EC.element_to_be_clickable((By.XPATH, '//span[@class="mc-button-content"][text()="Cerrar"]')))
-
-        btn_cerrar_pop_up.click()
+                (By.XPATH, '//p[@class="mc-snackbar-title"][text()="Se elimin\u00F3 1 elemento."]')))
 
         json_eval["steps"][3]["output"][0]["status"] = jsonConst.SUCCESS
         json_eval["steps"][3]["status"] = jsonConst.SUCCESS
@@ -415,20 +414,21 @@ def main():
 
     # se genera el json de evaluacion
     json_evaluacion_drop_box = GeneradorJsonBaseEvaluacion.generar_nuevo_template_json()
-    webdriver_ux_test.save_screenshot("./ingreso.png")
+
     json_evaluacion_drop_box = inicio_sesion_dropbox(webdriver_ux_test, json_evaluacion_drop_box, json_args,
                                                      url_login)
-    webdriver_ux_test.save_screenshot("./inicio_sesion.png")
+
     json_evaluacion_drop_box = cargar_archivo_dropbox(webdriver_ux_test, json_evaluacion_drop_box, json_args,
                                                       nombre_archivo_imagen_sin_ext, nombre_archivo_imagen_con_ext)
-    webdriver_ux_test.save_screenshot("./carga.png")
-    json_evaluacion_drop_box = descargar_archivo_dropbox(webdriver_ux_test, json_evaluacion_drop_box, json_args)
-    webdriver_ux_test.save_screenshot("./descarga.png")
+
+    json_evaluacion_drop_box = descargar_archivo_dropbox(webdriver_ux_test, json_evaluacion_drop_box,
+                                                         nombre_archivo_imagen_con_ext)
+
     json_evaluacion_drop_box = eliminar_archivo_dropbox(webdriver_ux_test, json_evaluacion_drop_box,
                                                         nombre_archivo_imagen_con_ext)
-    webdriver_ux_test.save_screenshot("./eliminacion.png")
+
     json_evaluacion_drop_box = cerrar_sesion_dropbox(webdriver_ux_test, json_evaluacion_drop_box)
-    webdriver_ux_test.save_screenshot("./cierre_sesion.png")
+
     tiempo_final_ejecucion_prueba = Temporizador.obtener_tiempo_timer() - tiempo_inicial_ejecucion_prueba
     fecha_prueba_final = Temporizador.obtener_fecha_tiempo_actual()
 
